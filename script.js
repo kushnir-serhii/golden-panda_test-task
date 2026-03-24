@@ -97,15 +97,17 @@ function clearSession() {
 // =============================================
 //  TIME TRACKING
 // =============================================
+let _startTime = null;
+
 function getSeconds() {
-  const start = parseInt(localStorage.getItem(KEY_START), 10);
+  const start = _startTime || parseInt(localStorage.getItem(KEY_START), 10);
   return start ? Math.floor((Date.now() - start) / 1000) : 0;
 }
 
 function initTimeTracking() {
-  if (!localStorage.getItem(KEY_START)) {
-    localStorage.setItem(KEY_START, Date.now());
-  }
+  const saved = parseInt(localStorage.getItem(KEY_START), 10);
+  _startTime = saved || Date.now();
+  localStorage.setItem(KEY_START, _startTime);
 
   // Heartbeat every 30s
   setInterval(() => save({ time_spent_sec: getSeconds() }), 30_000);
