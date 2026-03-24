@@ -1,4 +1,63 @@
 // =============================================
+//  TIME TRACKING
+// =============================================
+const TIME_KEY = 'gp_start_time';
+
+/**
+ * Record session start time. If a previous start time exists in
+ * localStorage (e.g. user refreshed), reuse it so time is cumulative.
+ */
+function initTimeTracking() {
+  try {
+    if (!localStorage.getItem(TIME_KEY)) {
+      localStorage.setItem(TIME_KEY, Date.now().toString());
+    }
+  } catch (_) {}
+
+  // Persist on tab hide / close so the value survives visibility changes
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+      persistStartTime();
+    }
+  });
+
+  window.addEventListener('beforeunload', persistStartTime);
+}
+
+function persistStartTime() {
+  try {
+    if (!localStorage.getItem(TIME_KEY)) {
+      localStorage.setItem(TIME_KEY, Date.now().toString());
+    }
+  } catch (_) {}
+}
+
+/**
+ * Returns the number of seconds the user has spent on the page.
+ * Uses the start time stored in localStorage.
+ */
+function getTimeSpentSeconds() {
+  try {
+    const start = parseInt(localStorage.getItem(TIME_KEY), 10);
+    if (start && !isNaN(start)) {
+      return Math.floor((Date.now() - start) / 1000);
+    }
+  } catch (_) {}
+  return 0;
+}
+
+/**
+ * Clear time tracking data after a successful submission.
+ */
+function clearTimeTracking() {
+  try {
+    localStorage.removeItem(TIME_KEY);
+    localStorage.removeItem('gp_quiz_step');
+    localStorage.removeItem('gp_quiz_answers');
+  } catch (_) {}
+}
+
+// =============================================
 //  QUIZ STATE
 // =============================================
 const TOTAL_STEPS = 6;
@@ -209,6 +268,7 @@ function restoreQuizState() {
 //  INIT
 // =============================================
 document.addEventListener('DOMContentLoaded', () => {
+  initTimeTracking();
   initOptionButtons();
   initNavButtons();
   initSubmitButton();
