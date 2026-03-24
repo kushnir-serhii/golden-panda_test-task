@@ -5,32 +5,42 @@ const SUPABASE_URL = "https://qpykntwppcdkttkbedgs.supabase.co";
 const SUPABASE_KEY = "sb_publishable_LRkPXFhsBbgfiKcGtRCtWA_KW2sT41O";
 const TABLE = "quiz_sessions";
 
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 // =============================================
 //  SUPABASE
 // =============================================
-const HEADERS = {
-  "Content-Type": "application/json",
-  apikey: SUPABASE_KEY,
-  Authorization: `Bearer ${SUPABASE_KEY}`,
-};
-
 async function dbInsert(data) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}`, {
-    method: "POST",
-    headers: { ...HEADERS, Prefer: "return=representation" },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) throw new Error(`Insert failed: ${res.status}`);
-  const rows = await res.json();
-  return rows[0];
+  // Generate id client-side — avoids needing SELECT policy just to get the id back
+  const id = crypto.randomUUID ? crypto.randomUUID()
+    : "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+        const r = (Math.random() * 16) | 0;
+        return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+      });
+  const { error } = await db.from(TABLE).insert({ ...data, id });
+  if (error) throw new Error(`Insert failed: ${error.message}`);
+  return { id };
 }
 
-function dbPatch(id, data, keepalive = false) {
+function dbPatch(id, data) {
+  db.from(TABLE).update(data).eq("id", id).then(({ error }) => {
+    if (error) console.warn("[Patch]", error.message);
+  });
+}
+
+// Raw fetch with keepalive:true — survives page close/tab switch
+// The SDK doesn't support keepalive, so we use fetch directly for unload events
+function dbPatchKeepAlive(id, data) {
   fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?id=eq.${id}`, {
     method: "PATCH",
-    headers: { ...HEADERS, Prefer: "return=minimal" },
+    headers: {
+      "Content-Type": "application/json",
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`,
+      Prefer: "return=minimal",
+    },
     body: JSON.stringify(data),
-    keepalive,
+    keepalive: true,
   }).catch(() => {});
 }
 
@@ -72,9 +82,9 @@ async function initSession() {
   }
 }
 
-function save(data, keepalive = false) {
+function save(data) {
   if (!rowId) return;
-  dbPatch(rowId, data, keepalive);
+  dbPatch(rowId, data);
 }
 
 function clearSession() {
@@ -99,14 +109,14 @@ function initTimeTracking() {
   // Heartbeat every 30s
   setInterval(() => save({ time_spent_sec: getSeconds() }), 30_000);
 
-  // Save on tab hide / close
+  // Save on tab hide / close — use keepalive fetch so request survives unload
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "hidden") {
-      save({ time_spent_sec: getSeconds() }, true);
+      if (rowId) dbPatchKeepAlive(rowId, { time_spent_sec: getSeconds() });
     }
   });
   window.addEventListener("beforeunload", () => {
-    save({ time_spent_sec: getSeconds() }, true);
+    if (rowId) dbPatchKeepAlive(rowId, { time_spent_sec: getSeconds() });
   });
 }
 
@@ -154,17 +164,19 @@ function showStep(n) {
     localStorage.setItem(KEY_ANSWERS, JSON.stringify(state.answers));
   } catch (_) {}
 
-  // Sync partial progress to DB on every step
-  save({
-    quiz_step_reached: n,
-    time_spent_sec:    getSeconds(),
-    age_range:         state.answers.ageRange,
-    current_weight:    state.answers.currentWeight,
-    target_weight:     state.answers.targetWeight,
-    activity_level:    state.answers.activityLevel,
-    main_goal:         state.answers.mainGoal,
-    email:             state.answers.email,
-  });
+  // Sync partial progress to DB — skip thank-you step (session already cleared)
+  if (n <= TOTAL_STEPS) {
+    save({
+      quiz_step_reached: n,
+      time_spent_sec:    getSeconds(),
+      age_range:         state.answers.ageRange,
+      current_weight:    state.answers.currentWeight,
+      target_weight:     state.answers.targetWeight,
+      activity_level:    state.answers.activityLevel,
+      main_goal:         state.answers.mainGoal,
+      email:             state.answers.email,
+    });
+  }
 }
 
 // =============================================
