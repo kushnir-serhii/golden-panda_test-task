@@ -313,11 +313,6 @@ ul {
   font-weight: 700;
 }
 
-.tldr {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
-}
-
 /* =============================================
    REASON SECTIONS
    ============================================= */
