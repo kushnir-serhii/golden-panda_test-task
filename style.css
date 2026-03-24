@@ -445,3 +445,103 @@ ul {
   text-align: center;
   line-height: 1.5;
 }
+
+/* =============================================
+   ABOUT SECTION
+   ============================================= */
+.about-section {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-xl);
+  align-items: start;
+  background: var(--color-section-bg);
+  border-radius: var(--border-radius-lg);
+  padding: var(--space-xl);
+  max-width: var(--max-width);
+  margin: 0 auto;
+  width: 100%;
+}
+
+.about-image-block {
+  flex-shrink: 0;
+}
+
+.about-img {
+  width: 220px;
+  height: 280px;
+  object-fit: cover;
+  object-position: top;
+  border-radius: var(--border-radius);
+  display: block;
+}
+
+.about-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.about-title {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.about-content p {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  line-height: 1.7;
+}
+
+.about-checklist {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.about-checklist li {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  padding-left: 1.5rem;
+  position: relative;
+  line-height: 1.6;
+}
+
+.about-checklist li::before {
+  content: '✅';
+  position: absolute;
+  left: 0;
+  font-size: 0.8rem;
+  top: 0.1em;
+}
+
+.about-content .btn--secondary {
+  align-self: flex-start;
+  margin-top: var(--space-sm);
+}
+
+/* =============================================
+   FOOTER
+   ============================================= */
+.site-footer {
+  padding: var(--space-xl) var(--space-lg);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-top: 1px solid var(--color-border);
+  margin-top: var(--space-xl);
+}
+
+.footer-inner {
+  display: flex;
+  justify-content: center;
+}
+
+.footer-logo-img {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  border-radius: 50%;
+  border: 2px solid var(--color-text);
+}
