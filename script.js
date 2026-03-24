@@ -88,7 +88,8 @@ function save(data) {
 }
 
 function clearSession() {
-  [KEY_SESSION, KEY_ROW, KEY_START, KEY_STEP, KEY_ANSWERS].forEach((k) => {
+  [KEY_SESSION, KEY_ROW, KEY_START, KEY_STEP, KEY_ANSWERS,
+   "gp_visit_row_id", "gp_start_time"].forEach((k) => {
     localStorage.removeItem(k);
   });
 }
@@ -159,10 +160,12 @@ function showStep(n) {
 
   state.step = n;
 
-  try {
-    localStorage.setItem(KEY_STEP, n);
-    localStorage.setItem(KEY_ANSWERS, JSON.stringify(state.answers));
-  } catch (_) {}
+  if (n <= TOTAL_STEPS) {
+    try {
+      localStorage.setItem(KEY_STEP, n);
+      localStorage.setItem(KEY_ANSWERS, JSON.stringify(state.answers));
+    } catch (_) {}
+  }
 
   // Sync partial progress to DB — skip thank-you step (session already cleared)
   if (n <= TOTAL_STEPS) {
@@ -294,6 +297,7 @@ async function handleSubmit() {
   });
 
   clearSession();
+  rowId = null; // stop heartbeat/unload from overwriting submitted data
   showStep(7);
 }
 
