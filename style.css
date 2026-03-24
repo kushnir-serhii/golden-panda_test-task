@@ -17,6 +17,7 @@
   --color-teal-bg: #E8F7F6;
   --color-section-bg: #D6EEF5;
   --color-orange: #E8885A;
+  --color-orange-light: hsl(29, 100%, 72%);
   --color-orange-hover: #D4734A;
   --color-text: #1A1A1A;
   --color-text-muted: #555;
@@ -402,12 +403,17 @@ ul {
 }
 
 .promo-badge {
+
+  width:fit-content;
+  margin: 0 auto;
+  padding: 0.25rem 0.75rem;
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--color-orange);
-  background-color: var(--color-orange-hover);
+  color: var(--color-text);
+  background-color: var(--color-orange-light);
+  border-radius: var(--border-radius-lg);
 }
 
 .promo-subtitle {
@@ -727,8 +733,7 @@ ul {
   width: 60px;
   height: 60px;
   object-fit: contain;
-  border-radius: 50%;
-  border: 2px solid var(--color-text);
+
 }
 
 /* =============================================
