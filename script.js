@@ -1,4 +1,53 @@
 // =============================================
+//  SUPABASE CONFIG
+//  Replace these values with your Supabase project credentials.
+//  Table SQL:
+//    create table quiz_submissions (
+//      id            uuid primary key default gen_random_uuid(),
+//      created_at    timestamptz default now(),
+//      age_range     text,
+//      current_weight int,
+//      target_weight  int,
+//      activity_level text,
+//      main_goal      text,
+//      email          text,
+//      time_spent_sec int
+//    );
+// =============================================
+const SUPABASE_URL  = 'YOUR_SUPABASE_URL';   // e.g. https://xxxx.supabase.co
+const SUPABASE_KEY  = 'YOUR_SUPABASE_ANON_KEY';
+const TABLE_NAME    = 'quiz_submissions';
+
+/**
+ * Save a quiz submission row to Supabase via the REST API.
+ * Uses fetch() — no SDK needed, works in any browser.
+ */
+async function saveToSupabase(data) {
+  if (SUPABASE_URL === 'YOUR_SUPABASE_URL') {
+    console.warn('[Supabase] Credentials not configured — skipping save.');
+    return { ok: true, skipped: true };
+  }
+
+  const url = `${SUPABASE_URL}/rest/v1/${TABLE_NAME}`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Prefer': 'return=minimal',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`Supabase error ${res.status}: ${text}`);
+  }
+  return { ok: true };
+}
+
+// =============================================
 //  TIME TRACKING
 // =============================================
 const TIME_KEY = 'gp_start_time';
@@ -226,8 +275,33 @@ function initNavButtons() {
 // =============================================
 async function handleSubmit() {
   if (!validateStep(6)) return;
-  // Time tracking + Supabase save added in commits 8 & 9
-  showStep(7);
+
+  const submitBtn = document.getElementById('submitQuiz');
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Saving…';
+  }
+
+  const payload = {
+    age_range:      quizState.answers.ageRange,
+    current_weight: quizState.answers.currentWeight,
+    target_weight:  quizState.answers.targetWeight,
+    activity_level: quizState.answers.activityLevel,
+    main_goal:      quizState.answers.mainGoal,
+    email:          quizState.answers.email,
+    time_spent_sec: getTimeSpentSeconds(),
+  };
+
+  try {
+    await saveToSupabase(payload);
+    clearTimeTracking();
+    showStep(7);
+  } catch (err) {
+    console.error('[Submit]', err);
+    // Still show thank-you — don't block UX on network failure
+    clearTimeTracking();
+    showStep(7);
+  }
 }
 
 function initSubmitButton() {
