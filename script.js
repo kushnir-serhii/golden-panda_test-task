@@ -5,33 +5,27 @@ const SUPABASE_URL = "https://qpykntwppcdkttkbedgs.supabase.co";
 const SUPABASE_KEY = "sb_publishable_LRkPXFhsBbgfiKcGtRCtWA_KW2sT41O";
 const TABLE = "quiz_sessions";
 
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 // =============================================
 //  SUPABASE
 // =============================================
-const HEADERS = {
-  "Content-Type": "application/json",
-  apikey: SUPABASE_KEY,
-  Authorization: `Bearer ${SUPABASE_KEY}`,
-};
-
 async function dbInsert(data) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}`, {
-    method: "POST",
-    headers: { ...HEADERS, Prefer: "return=representation" },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) throw new Error(`Insert failed: ${res.status}`);
-  const rows = await res.json();
-  return rows[0];
+  // Generate id client-side — avoids needing SELECT policy just to get the id back
+  const id = crypto.randomUUID ? crypto.randomUUID()
+    : "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+        const r = (Math.random() * 16) | 0;
+        return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+      });
+  const { error } = await db.from(TABLE).insert({ ...data, id });
+  if (error) throw new Error(`Insert failed: ${error.message}`);
+  return { id };
 }
 
-function dbPatch(id, data, keepalive = false) {
-  fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?id=eq.${id}`, {
-    method: "PATCH",
-    headers: { ...HEADERS, Prefer: "return=minimal" },
-    body: JSON.stringify(data),
-    keepalive,
-  }).catch(() => {});
+function dbPatch(id, data) {
+  db.from(TABLE).update(data).eq("id", id).then(({ error }) => {
+    if (error) console.warn("[Patch]", error.message);
+  });
 }
 
 // =============================================
@@ -72,9 +66,9 @@ async function initSession() {
   }
 }
 
-function save(data, keepalive = false) {
+function save(data) {
   if (!rowId) return;
-  dbPatch(rowId, data, keepalive);
+  dbPatch(rowId, data);
 }
 
 function clearSession() {
@@ -102,11 +96,11 @@ function initTimeTracking() {
   // Save on tab hide / close
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "hidden") {
-      save({ time_spent_sec: getSeconds() }, true);
+      save({ time_spent_sec: getSeconds() });
     }
   });
   window.addEventListener("beforeunload", () => {
-    save({ time_spent_sec: getSeconds() }, true);
+    save({ time_spent_sec: getSeconds() });
   });
 }
 
