@@ -729,3 +729,136 @@ ul {
   border-radius: 50%;
   border: 2px solid var(--color-text);
 }
+
+/* =============================================
+   RESPONSIVE — TABLET (≤ 768px)
+   ============================================= */
+@media (max-width: 768px) {
+  .page-wrapper {
+    padding: var(--space-lg) var(--space-md);
+  }
+
+  /* Reason sections: stack vertically */
+  .reason-section {
+    grid-template-columns: 1fr;
+    gap: var(--space-lg);
+    padding: var(--space-lg) var(--space-md);
+  }
+
+  .reason-section--alt-bg {
+    padding: var(--space-lg) var(--space-md);
+  }
+
+  .reason-img {
+    height: 220px;
+  }
+
+  /* Promo: stack vertically */
+  .promo-section {
+    grid-template-columns: 1fr;
+    text-align: center;
+    padding: var(--space-lg);
+  }
+
+  .promo-image-block {
+    justify-content: center;
+  }
+
+  .promo-product-img {
+    max-width: 200px;
+    margin: 0 auto;
+  }
+
+  /* About: stack vertically */
+  .about-section {
+    grid-template-columns: 1fr;
+    text-align: center;
+    gap: var(--space-lg);
+    padding: var(--space-lg);
+  }
+
+  .about-image-block {
+    display: flex;
+    justify-content: center;
+  }
+
+  .about-img {
+    width: 180px;
+    height: 220px;
+  }
+
+  .about-content .btn--secondary {
+    align-self: center;
+  }
+
+  .about-checklist li {
+    text-align: left;
+  }
+
+  /* Comparison table */
+  .comparison-table-wrapper {
+    max-width: 100%;
+  }
+
+  /* Quiz */
+  .quiz-container {
+    padding: var(--space-lg) var(--space-md);
+  }
+
+  .quiz-nav {
+    flex-direction: column-reverse;
+    gap: var(--space-sm);
+  }
+
+  .quiz-nav .btn {
+    width: 100%;
+  }
+}
+
+/* =============================================
+   RESPONSIVE — MOBILE (≤ 480px)
+   ============================================= */
+@media (max-width: 480px) {
+  :root {
+    --font-size-base: 15px;
+  }
+
+  .page-wrapper {
+    padding: var(--space-md) var(--space-sm);
+  }
+
+  .article {
+    gap: var(--space-xl);
+  }
+
+  .article-title {
+    font-size: 1.4rem;
+  }
+
+  .reason-img {
+    height: 180px;
+  }
+
+  .promo-section {
+    padding: var(--space-md);
+  }
+
+  .quiz-container {
+    padding: var(--space-md);
+    border-radius: var(--border-radius);
+  }
+
+  .quiz-option-btn {
+    padding: 0.75rem var(--space-md);
+    font-size: 0.875rem;
+  }
+
+  .quiz-input {
+    font-size: var(--font-size-base);
+  }
+
+  .about-section {
+    padding: var(--space-md);
+    border-radius: var(--border-radius);
+  }
+}
