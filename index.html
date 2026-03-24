@@ -15,6 +15,12 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="style.css" />
+    <!-- Preload LCP image (author avatar, above the fold) -->
+    <link
+      rel="preload"
+      as="image"
+      href="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face"
+    />
   </head>
   <body>
     <main class="page-wrapper">
@@ -168,62 +174,53 @@
           </div>
         </section>
 
-        <!-- ===== REASON 3 ===== -->
+        <!-- ===== PROMO SECTION ===== -->
         <section class="reason-section--alt-bg">
-          <div class="reason-section">
-            <div class="reason-image-block">
+          <div class="promo-section">
+            <div class="promo-image-block">
               <img
                 src="./images/image_3.webp"
-                alt="Data processing modules representing effortless paragraph control"
-                class="reason-img"
-                width="360"
-                height="360"
+                alt="Joint Relief Patches product"
+                class="promo-product-img"
+                width="260"
+                height="220"
                 loading="lazy"
               />
             </div>
-            <div class="reason-content">
-              <h2 class="reason-title">3. Paragraph control is effortless</h2>
-              <p>
-                With TEXT-1-support your system registers completion, just as it
-                should. That means you naturally stop writing when it is full –
-                not just when the entire page is empty.
+            <div class="promo-content">
+              <span class="promo-badge">SPECIAL OFFERS:</span>
+              <p class="promo-subtitle">
+                Try out the generic TEXT-1-placeholder entirely free
               </p>
-              <p>
-                You no longer have to measure, count, or overthink what you are
-                typing. You feel complete when your layout has received enough
-                text. Not a single word more. Period.
+              <h3 class="promo-headline">SUMMER DEALS</h3>
+              <p class="promo-body">
+                These paragraphs are heavily requested and even at normal prices
+                very quickly sold out.
+              </p>
+              <a href="#quiz" class="btn btn--primary"
+                >RECEIVE A 50% DISCOUNT</a
+              >
+              <p class="promo-disclaimer">
+                <em
+                  >You have 90 full days to try it out and get your layout
+                  completely reverted if you do not absolutely LOVE it.</em
+                >
               </p>
             </div>
-          </div>
-        </section>
-        <!-- ===== PROMO SECTION ===== -->
-        <section class="promo-section">
-          <div class="promo-image-block">
-            <img
-              src="https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&h=320&fit=crop"
-              alt="Joint Relief Patches product"
-              class="promo-product-img"
-              width="260"
-              height="220"
-              loading="lazy"
-            />
-          </div>
-          <div class="promo-content">
-            <span class="promo-badge">SPECIAL OFFERS:</span>
-            <p class="promo-subtitle">Try out the generic TEXT-1-placeholder entirely free</p>
-            <h3 class="promo-headline">SUMMER DEALS</h3>
-            <p class="promo-body">These paragraphs are heavily requested and even at normal prices very quickly sold out.</p>
-            <a href="#quiz" class="btn btn--primary">RECEIVE A 50% DISCOUNT</a>
-            <p class="promo-disclaimer">
-              <em>You have 90 full days to try it out and get your layout completely reverted if you do not absolutely LOVE it.</em>
-            </p>
           </div>
         </section>
 
         <!-- ===== QUIZ SECTION ===== -->
         <section class="quiz-section" id="quiz">
           <div class="quiz-container">
-            <div class="quiz-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="6" aria-valuenow="1" aria-label="Quiz progress">
+            <div
+              class="quiz-progress-bar"
+              role="progressbar"
+              aria-valuemin="0"
+              aria-valuemax="6"
+              aria-valuenow="1"
+              aria-label="Quiz progress"
+            >
               <div class="quiz-progress-fill" id="quizProgress"></div>
             </div>
             <p class="quiz-step-label" id="quizStepLabel">Step 1 of 6</p>
@@ -232,10 +229,18 @@
             <div class="quiz-step active" data-step="1">
               <h3 class="quiz-question">How old are you?</h3>
               <div class="quiz-options">
-                <button class="quiz-option-btn" data-value="Under 20">Under 20</button>
-                <button class="quiz-option-btn" data-value="20-30">20–30</button>
-                <button class="quiz-option-btn" data-value="30-40">30–40</button>
-                <button class="quiz-option-btn" data-value="40-50">40–50</button>
+                <button class="quiz-option-btn" data-value="Under 20">
+                  Under 20
+                </button>
+                <button class="quiz-option-btn" data-value="20-30">
+                  20–30
+                </button>
+                <button class="quiz-option-btn" data-value="30-40">
+                  30–40
+                </button>
+                <button class="quiz-option-btn" data-value="40-50">
+                  40–50
+                </button>
                 <button class="quiz-option-btn" data-value="50+">50+</button>
               </div>
             </div>
@@ -258,8 +263,12 @@
               </div>
               <p class="quiz-error" id="currentWeightError" role="alert"></p>
               <div class="quiz-nav">
-                <button class="btn btn--outline" data-action="prev">← Back</button>
-                <button class="btn btn--primary" data-action="next">Next →</button>
+                <button class="btn btn--outline" data-action="prev">
+                  ← Back
+                </button>
+                <button class="btn btn--primary" data-action="next">
+                  Next →
+                </button>
               </div>
             </div>
 
@@ -281,8 +290,12 @@
               </div>
               <p class="quiz-error" id="targetWeightError" role="alert"></p>
               <div class="quiz-nav">
-                <button class="btn btn--outline" data-action="prev">← Back</button>
-                <button class="btn btn--primary" data-action="next">Next →</button>
+                <button class="btn btn--outline" data-action="prev">
+                  ← Back
+                </button>
+                <button class="btn btn--primary" data-action="next">
+                  Next →
+                </button>
               </div>
             </div>
 
@@ -290,10 +303,18 @@
             <div class="quiz-step" data-step="4">
               <h3 class="quiz-question">How active are you currently?</h3>
               <div class="quiz-options">
-                <button class="quiz-option-btn" data-value="Sedentary">Sedentary <small>(little or no exercise)</small></button>
-                <button class="quiz-option-btn" data-value="Lightly active">Lightly active <small>(1–3 days/week)</small></button>
-                <button class="quiz-option-btn" data-value="Moderately active">Moderately active <small>(3–5 days/week)</small></button>
-                <button class="quiz-option-btn" data-value="Very active">Very active <small>(6–7 days/week)</small></button>
+                <button class="quiz-option-btn" data-value="Sedentary">
+                  Sedentary <small>(little or no exercise)</small>
+                </button>
+                <button class="quiz-option-btn" data-value="Lightly active">
+                  Lightly active <small>(1–3 days/week)</small>
+                </button>
+                <button class="quiz-option-btn" data-value="Moderately active">
+                  Moderately active <small>(3–5 days/week)</small>
+                </button>
+                <button class="quiz-option-btn" data-value="Very active">
+                  Very active <small>(6–7 days/week)</small>
+                </button>
               </div>
             </div>
 
@@ -301,16 +322,26 @@
             <div class="quiz-step" data-step="5">
               <h3 class="quiz-question">What is your main goal?</h3>
               <div class="quiz-options">
-                <button class="quiz-option-btn" data-value="Lose weight">Lose weight</button>
-                <button class="quiz-option-btn" data-value="Build muscle">Build muscle</button>
-                <button class="quiz-option-btn" data-value="Improve health">Improve overall health</button>
-                <button class="quiz-option-btn" data-value="Boost energy">Boost energy levels</button>
+                <button class="quiz-option-btn" data-value="Lose weight">
+                  Lose weight
+                </button>
+                <button class="quiz-option-btn" data-value="Build muscle">
+                  Build muscle
+                </button>
+                <button class="quiz-option-btn" data-value="Improve health">
+                  Improve overall health
+                </button>
+                <button class="quiz-option-btn" data-value="Boost energy">
+                  Boost energy levels
+                </button>
               </div>
             </div>
 
             <!-- Step 6: Email -->
             <div class="quiz-step" data-step="6">
-              <h3 class="quiz-question">Where should we send your personalized plan?</h3>
+              <h3 class="quiz-question">
+                Where should we send your personalized plan?
+              </h3>
               <div class="quiz-input-group">
                 <input
                   type="email"
@@ -324,8 +355,12 @@
               </div>
               <p class="quiz-error" id="emailError" role="alert"></p>
               <div class="quiz-nav">
-                <button class="btn btn--outline" data-action="prev">← Back</button>
-                <button class="btn btn--primary" id="submitQuiz">Get My Plan →</button>
+                <button class="btn btn--outline" data-action="prev">
+                  ← Back
+                </button>
+                <button class="btn btn--primary" id="submitQuiz">
+                  Get My Plan →
+                </button>
               </div>
             </div>
 
@@ -333,12 +368,19 @@
             <div class="quiz-step" data-step="7">
               <div class="quiz-thankyou">
                 <div class="quiz-thankyou-icon" aria-hidden="true">🎉</div>
-                <h3 class="quiz-question">Your personalized plan is on its way!</h3>
-                <p>Thank you for completing the quiz. Check your inbox – we'll send you a customized plan based on your answers within a few minutes.</p>
-                <a href="#" class="btn btn--primary quiz-thankyou-btn">Claim your 50% discount</a>
+                <h3 class="quiz-question">
+                  Your personalized plan is on its way!
+                </h3>
+                <p>
+                  Thank you for completing the quiz. Check your inbox – we'll
+                  send you a customized plan based on your answers within a few
+                  minutes.
+                </p>
+                <a href="#" class="btn btn--primary quiz-thankyou-btn"
+                  >Claim your 50% discount</a
+                >
               </div>
             </div>
-
           </div>
         </section>
 
@@ -356,15 +398,31 @@
           </div>
           <div class="about-content">
             <h2 class="about-title">About us</h2>
-            <p>Nicole heard of the unbelievable results of typography. She researched extensively. She even considered asking her designer for a custom template.</p>
+            <p>
+              Nicole heard of the unbelievable results of typography. She
+              researched extensively. She even considered asking her designer
+              for a custom template.
+            </p>
             <p>But she couldn't get over one specific thing: the margins.</p>
-            <p>So she put together a team of developers to answer one question: "Can we get TEXT-1 benefits naturally, without margins, plugins, or weird side effects?"</p>
+            <p>
+              So she put together a team of developers to answer one question:
+              "Can we get TEXT-1 benefits naturally, without margins, plugins,
+              or weird side effects?"
+            </p>
             <p>The final answer required:</p>
             <ul class="about-checklist">
               <li>Targeting the CORE (where 90% of the TEXT-1 is generated)</li>
-              <li>Combination of standard fonts + formatting (for visual signals)</li>
-              <li>Adding about 13 more components (for complete structural assistance)</li>
-              <li>Utilizing transparent delivery methods (to bypass visual disruptions)</li>
+              <li>
+                Combination of standard fonts + formatting (for visual signals)
+              </li>
+              <li>
+                Adding about 13 more components (for complete structural
+                assistance)
+              </li>
+              <li>
+                Utilizing transparent delivery methods (to bypass visual
+                disruptions)
+              </li>
             </ul>
             <p>This is how the concept was born.</p>
             <a href="#quiz" class="btn btn--secondary">
@@ -372,7 +430,6 @@
             </a>
           </div>
         </section>
-
       </article>
     </main>
     <footer class="site-footer">
