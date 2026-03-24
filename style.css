@@ -82,6 +82,56 @@ ul {
 }
 
 /* =============================================
+   BUTTONS
+   ============================================= */
+.btn {
+  display: inline-block;
+  padding: 0.875rem 1.5rem;
+  border-radius: var(--border-radius);
+  font-family: var(--font-family);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+  line-height: 1.2;
+}
+
+.btn--primary {
+  background: var(--color-orange);
+  color: var(--color-white);
+  border-color: var(--color-orange);
+}
+
+.btn--primary:hover {
+  background: var(--color-orange-hover);
+  border-color: var(--color-orange-hover);
+}
+
+.btn--secondary {
+  background: var(--color-orange);
+  color: var(--color-white);
+  border-color: var(--color-orange);
+  text-align: center;
+}
+
+.btn--secondary:hover {
+  background: var(--color-orange-hover);
+  border-color: var(--color-orange-hover);
+}
+
+.btn--outline {
+  background: transparent;
+  color: var(--color-teal);
+  border-color: var(--color-teal);
+}
+
+.btn--outline:hover {
+  background: var(--color-teal-light);
+}
+
+/* =============================================
    PAGE LAYOUT
    ============================================= */
 .page-wrapper {
@@ -94,4 +144,167 @@ ul {
   display: flex;
   flex-direction: column;
   gap: var(--space-2xl);
+}
+
+/* =============================================
+   ARTICLE HEADER
+   ============================================= */
+.article-title {
+  font-size: clamp(1.5rem, 4vw, 2.25rem);
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--color-text);
+  margin-bottom: var(--space-lg);
+}
+
+.author-block {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.author-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.author-meta {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.author-name {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* =============================================
+   INTRO SECTION
+   ============================================= */
+.intro-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.intro-lead {
+  font-size: var(--font-size-sm);
+}
+
+.intro-lead strong {
+  font-weight: 700;
+}
+
+/* Comparison Table */
+.comparison-table-wrapper {
+  margin: var(--space-md) 0;
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  width: 100%;
+  max-width: 500px;
+  align-self: center;
+}
+
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.comparison-table thead th {
+  padding: var(--space-sm) var(--space-md);
+  font-weight: 700;
+  text-align: center;
+  background: var(--color-white);
+}
+
+.comparison-table .col-selida {
+  background: var(--color-teal-bg);
+}
+
+.comparison-table .col-placeholder {
+  color: var(--color-cross);
+}
+
+.comparison-table tbody tr {
+  border-top: 1px solid var(--color-border);
+}
+
+.comparison-table tbody tr:nth-child(odd) {
+  background: #fafafa;
+}
+
+.comparison-table tbody td {
+  padding: 0.6rem var(--space-md);
+  text-align: center;
+}
+
+.comparison-table tbody td:first-child {
+  text-align: left;
+  font-weight: 500;
+}
+
+.comparison-table .col-selida td,
+.comparison-table tbody td:nth-child(2) {
+  background: var(--color-teal-bg);
+}
+
+.icon-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: var(--color-check);
+  color: white;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.icon-cross {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: var(--color-cross);
+  color: white;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.brand-logo-sm {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+}
+
+.logo-circle-sm {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--color-text);
+  color: var(--color-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1rem;
+  border: 2px solid var(--color-text);
+}
+
+.tldr {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
 }
