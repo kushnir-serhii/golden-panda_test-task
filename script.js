@@ -1,59 +1,52 @@
 // =============================================
-//  SUPABASE CONFIG
+//  CONFIG
 // =============================================
 const SUPABASE_URL = "https://qpykntwppcdkttkbedgs.supabase.co";
 const SUPABASE_KEY = "sb_publishable_LRkPXFhsBbgfiKcGtRCtWA_KW2sT41O";
-const VISITS_TABLE = "page_visits"; // all visitors
-const QUIZ_TABLE = "quiz_submissions"; // completed quizzes only
+const TABLE = "quiz_sessions";
 
 // =============================================
-//  SUPABASE HELPERS
+//  SUPABASE
 // =============================================
-function supabaseHeaders() {
-  return {
-    "Content-Type": "application/json",
-    apikey: SUPABASE_KEY,
-    Authorization: `Bearer ${SUPABASE_KEY}`,
-  };
-}
+const HEADERS = {
+  "Content-Type": "application/json",
+  apikey: SUPABASE_KEY,
+  Authorization: `Bearer ${SUPABASE_KEY}`,
+};
 
-// prefer='representation' returns the inserted row (needed when we need the id back)
-// prefer='minimal' returns nothing — use for fire-and-forget inserts
-async function dbInsert(table, data, prefer = "minimal") {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+async function dbInsert(data) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}`, {
     method: "POST",
-    headers: { ...supabaseHeaders(), Prefer: `return=${prefer}` },
+    headers: { ...HEADERS, Prefer: "return=representation" },
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error(`Insert ${table} ${res.status}`);
-  if (prefer === "representation") {
-    const rows = await res.json();
-    return rows[0];
-  }
-  return null;
+  if (!res.ok) throw new Error(`Insert failed: ${res.status}`);
+  const rows = await res.json();
+  return rows[0];
 }
 
-function dbPatch(table, id, data, keepalive = false) {
-  // Fire-and-forget PATCH — safe to call on page unload
-  fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
+function dbPatch(id, data, keepalive = false) {
+  fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?id=eq.${id}`, {
     method: "PATCH",
-    headers: { ...supabaseHeaders(), Prefer: "return=minimal" },
+    headers: { ...HEADERS, Prefer: "return=minimal" },
     body: JSON.stringify(data),
-    keepalive, // survives page close when true
+    keepalive,
   }).catch(() => {});
 }
 
 // =============================================
-//  SESSION — page_visits row
+//  SESSION
 // =============================================
-const SESSION_ID_KEY = "gp_session_id";
-const VISIT_ROW_KEY = "gp_visit_row_id";
-const TIME_KEY = "gp_start_time";
+const KEY_SESSION  = "gp_session_id";
+const KEY_ROW      = "gp_row_id";
+const KEY_START    = "gp_start_time";
+const KEY_STEP     = "gp_quiz_step";
+const KEY_ANSWERS  = "gp_quiz_answers";
 
-let visitRowId = null;
+let rowId = null;
 
-function getOrCreateSessionId() {
-  let id = localStorage.getItem(SESSION_ID_KEY);
+function getSessionId() {
+  let id = localStorage.getItem(KEY_SESSION);
   if (!id) {
     id = crypto.randomUUID
       ? crypto.randomUUID()
@@ -61,81 +54,60 @@ function getOrCreateSessionId() {
           const r = (Math.random() * 16) | 0;
           return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
         });
-    localStorage.setItem(SESSION_ID_KEY, id);
+    localStorage.setItem(KEY_SESSION, id);
   }
   return id;
 }
 
 async function initSession() {
-  // Reuse existing row if user refreshed
-  const existingRowId = localStorage.getItem(VISIT_ROW_KEY);
-  if (existingRowId) {
-    visitRowId = existingRowId;
-    return;
-  }
+  const savedRowId = localStorage.getItem(KEY_ROW);
+  if (savedRowId) { rowId = savedRowId; return; }
 
   try {
-    const row = await dbInsert(VISITS_TABLE, {
-      session_id: getOrCreateSessionId(),
-    }, "representation");
-    visitRowId = row.id;
-    localStorage.setItem(VISIT_ROW_KEY, visitRowId);
-  } catch (err) {
-    console.warn("[Session] Could not create visit row:", err);
+    const row = await dbInsert({ session_id: getSessionId() });
+    rowId = row.id;
+    localStorage.setItem(KEY_ROW, rowId);
+  } catch (e) {
+    console.warn("[Session]", e);
   }
 }
 
-function patchVisit(data, keepalive = false) {
-  if (!visitRowId) return;
-  dbPatch(VISITS_TABLE, visitRowId, data, keepalive);
+function save(data, keepalive = false) {
+  if (!rowId) return;
+  dbPatch(rowId, data, keepalive);
+}
+
+function clearSession() {
+  [KEY_SESSION, KEY_ROW, KEY_START, KEY_STEP, KEY_ANSWERS].forEach((k) => {
+    localStorage.removeItem(k);
+  });
 }
 
 // =============================================
 //  TIME TRACKING
 // =============================================
-function getTimeSpentSeconds() {
-  try {
-    const start = parseInt(localStorage.getItem(TIME_KEY), 10);
-    if (start && !isNaN(start)) return Math.floor((Date.now() - start) / 1000);
-  } catch (_) {}
-  return 0;
+function getSeconds() {
+  const start = parseInt(localStorage.getItem(KEY_START), 10);
+  return start ? Math.floor((Date.now() - start) / 1000) : 0;
 }
 
 function initTimeTracking() {
-  try {
-    if (!localStorage.getItem(TIME_KEY)) {
-      localStorage.setItem(TIME_KEY, Date.now().toString());
-    }
-  } catch (_) {}
+  if (!localStorage.getItem(KEY_START)) {
+    localStorage.setItem(KEY_START, Date.now());
+  }
 
-  // Heartbeat — update time every 30s while user is active
-  setInterval(() => {
-    patchVisit({
-      time_spent_sec: getTimeSpentSeconds(),
-      quiz_step_reached: quizState.currentStep,
-    });
-  }, 30_000);
+  // Heartbeat every 30s
+  setInterval(() => save({ time_spent_sec: getSeconds() }), 30_000);
 
-  // On tab hide or close — use keepalive:true so request survives unload
+  // Save on tab hide / close
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "hidden") {
-      patchVisit({ time_spent_sec: getTimeSpentSeconds() }, true);
+      save({ time_spent_sec: getSeconds() }, true);
     }
   });
-
   window.addEventListener("beforeunload", () => {
-    patchVisit({ time_spent_sec: getTimeSpentSeconds() }, true);
+    save({ time_spent_sec: getSeconds() }, true);
   });
-}
-
-function clearSession() {
-  try {
-    localStorage.removeItem(TIME_KEY);
-    localStorage.removeItem(VISIT_ROW_KEY);
-    localStorage.removeItem(SESSION_ID_KEY);
-    localStorage.removeItem("gp_quiz_step");
-    localStorage.removeItem("gp_quiz_answers");
-  } catch (_) {}
 }
 
 // =============================================
@@ -143,8 +115,8 @@ function clearSession() {
 // =============================================
 const TOTAL_STEPS = 6;
 
-const quizState = {
-  currentStep: 1,
+const state = {
+  step: 1,
   answers: {
     ageRange: null,
     currentWeight: null,
@@ -156,141 +128,108 @@ const quizState = {
 };
 
 // =============================================
-//  DOM HELPERS
+//  QUIZ UI
 // =============================================
-function getStep(n) {
-  return document.querySelector(`.quiz-step[data-step="${n}"]`);
-}
-
 function showStep(n) {
-  document
-    .querySelectorAll(".quiz-step")
-    .forEach((el) => el.classList.remove("active"));
-  const step = getStep(n);
-  if (step) step.classList.add("active");
+  document.querySelectorAll(".quiz-step").forEach((el) => el.classList.remove("active"));
+  const stepEl = document.querySelector(`.quiz-step[data-step="${n}"]`);
+  if (stepEl) stepEl.classList.add("active");
 
   const progressEl = document.getElementById("quizProgress");
-  const labelEl = document.getElementById("quizStepLabel");
+  const labelEl    = document.getElementById("quizStepLabel");
+
   if (n <= TOTAL_STEPS) {
-    const pct = (n / TOTAL_STEPS) * 100;
-    if (progressEl) progressEl.style.width = `${pct}%`;
-    if (labelEl) labelEl.textContent = `Step ${n} of ${TOTAL_STEPS}`;
-    const bar = document.querySelector(".quiz-progress-bar");
-    if (bar) bar.setAttribute("aria-valuenow", n);
+    if (progressEl) progressEl.style.width = `${(n / TOTAL_STEPS) * 100}%`;
+    if (labelEl)    labelEl.textContent = `Step ${n} of ${TOTAL_STEPS}`;
+    document.querySelector(".quiz-progress-bar")?.setAttribute("aria-valuenow", n);
   } else {
     if (progressEl) progressEl.style.width = "100%";
-    if (labelEl) labelEl.style.display = "none";
+    if (labelEl)    labelEl.style.display = "none";
   }
 
-  quizState.currentStep = n;
+  state.step = n;
 
-  // Persist step + patch visit with current progress
   try {
-    localStorage.setItem("gp_quiz_step", n);
-    localStorage.setItem("gp_quiz_answers", JSON.stringify(quizState.answers));
+    localStorage.setItem(KEY_STEP, n);
+    localStorage.setItem(KEY_ANSWERS, JSON.stringify(state.answers));
   } catch (_) {}
 
-  patchVisit({
+  // Sync partial progress to DB on every step
+  save({
     quiz_step_reached: n,
-    time_spent_sec: getTimeSpentSeconds(),
-    age_range: quizState.answers.ageRange,
-    current_weight: quizState.answers.currentWeight,
-    target_weight: quizState.answers.targetWeight,
-    activity_level: quizState.answers.activityLevel,
-    main_goal: quizState.answers.mainGoal,
-    email: quizState.answers.email,
+    time_spent_sec:    getSeconds(),
+    age_range:         state.answers.ageRange,
+    current_weight:    state.answers.currentWeight,
+    target_weight:     state.answers.targetWeight,
+    activity_level:    state.answers.activityLevel,
+    main_goal:         state.answers.mainGoal,
+    email:             state.answers.email,
   });
 }
 
 // =============================================
 //  VALIDATION
 // =============================================
-function clearError(id) {
-  const el = document.getElementById(id);
-  if (el) el.textContent = "";
-}
-
-function showError(id, msg) {
+function setError(id, msg) {
   const el = document.getElementById(id);
   if (el) el.textContent = msg;
+  if (msg) document.getElementById(id.replace("Error", ""))?.classList.add("error");
+  else document.getElementById(id.replace("Error", ""))?.classList.remove("error");
 }
 
 function validateStep(step) {
   if (step === 2) {
     const val = parseInt(document.getElementById("currentWeight").value, 10);
-    clearError("currentWeightError");
-    document.getElementById("currentWeight").classList.remove("error");
+    setError("currentWeightError", "");
     if (!val || val < 20 || val > 300) {
-      showError(
-        "currentWeightError",
-        "Please enter a valid weight between 20 and 300 kg.",
-      );
-      document.getElementById("currentWeight").classList.add("error");
+      setError("currentWeightError", "Please enter a valid weight between 20 and 300 kg.");
       return false;
     }
-    quizState.answers.currentWeight = val;
+    state.answers.currentWeight = val;
     return true;
   }
-
   if (step === 3) {
-    const cw = quizState.answers.currentWeight;
     const val = parseInt(document.getElementById("targetWeight").value, 10);
-    clearError("targetWeightError");
-    document.getElementById("targetWeight").classList.remove("error");
+    setError("targetWeightError", "");
     if (!val || val < 20 || val > 300) {
-      showError(
-        "targetWeightError",
-        "Please enter a valid weight between 20 and 300 kg.",
-      );
-      document.getElementById("targetWeight").classList.add("error");
+      setError("targetWeightError", "Please enter a valid weight between 20 and 300 kg.");
       return false;
     }
-    if (val >= cw) {
-      showError(
-        "targetWeightError",
-        `Target weight must be less than your current weight (${cw} kg).`,
-      );
-      document.getElementById("targetWeight").classList.add("error");
+    if (val >= state.answers.currentWeight) {
+      setError("targetWeightError", `Must be less than current weight (${state.answers.currentWeight} kg).`);
       return false;
     }
-    quizState.answers.targetWeight = val;
+    state.answers.targetWeight = val;
     return true;
   }
-
   if (step === 6) {
     const val = document.getElementById("userEmail").value.trim();
-    clearError("emailError");
-    document.getElementById("userEmail").classList.remove("error");
+    setError("emailError", "");
     if (!val || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
-      showError("emailError", "Please enter a valid email address.");
-      document.getElementById("userEmail").classList.add("error");
+      setError("emailError", "Please enter a valid email address.");
       return false;
     }
-    quizState.answers.email = val;
+    state.answers.email = val;
     return true;
   }
-
   return true;
 }
 
 // =============================================
-//  OPTION BUTTON SELECTION (steps 1, 4, 5)
+//  OPTION BUTTONS (steps 1, 4, 5)
 // =============================================
 function initOptionButtons() {
   document.querySelectorAll(".quiz-option-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
       const step = parseInt(btn.closest(".quiz-step").dataset.step, 10);
-
-      btn
-        .closest(".quiz-options")
-        .querySelectorAll(".quiz-option-btn")
+      btn.closest(".quiz-options").querySelectorAll(".quiz-option-btn")
         .forEach((b) => b.classList.remove("selected"));
       btn.classList.add("selected");
 
-      const value = btn.dataset.value;
-      if (step === 1) quizState.answers.ageRange = value;
-      if (step === 4) quizState.answers.activityLevel = value;
-      if (step === 5) quizState.answers.mainGoal = value;
+      const val = btn.dataset.value;
+      if (step === 1) state.answers.ageRange      = val;
+      if (step === 4) state.answers.activityLevel  = val;
+      if (step === 5) state.answers.mainGoal        = val;
 
       setTimeout(() => {
         if (step < TOTAL_STEPS) showStep(step + 1);
@@ -301,7 +240,7 @@ function initOptionButtons() {
 }
 
 // =============================================
-//  NEXT / BACK NAVIGATION
+//  NAVIGATION
 // =============================================
 function initNavButtons() {
   document.querySelectorAll('[data-action="next"]').forEach((btn) => {
@@ -310,7 +249,6 @@ function initNavButtons() {
       if (validateStep(step)) showStep(step + 1);
     });
   });
-
   document.querySelectorAll('[data-action="prev"]').forEach((btn) => {
     btn.addEventListener("click", () => {
       const step = parseInt(btn.closest(".quiz-step").dataset.step, 10);
@@ -323,94 +261,57 @@ function initNavButtons() {
 //  SUBMIT
 // =============================================
 async function handleSubmit() {
-  if (!quizState.answers.ageRange) {
-    showStep(1);
-    return;
-  }
-  if (!quizState.answers.activityLevel) {
-    showStep(4);
-    return;
-  }
-  if (!quizState.answers.mainGoal) {
-    showStep(5);
-    return;
-  }
+  if (!state.answers.ageRange)      { showStep(1); return; }
+  if (!state.answers.activityLevel) { showStep(4); return; }
+  if (!state.answers.mainGoal)      { showStep(5); return; }
   if (!validateStep(6)) return;
 
-  const submitBtn = document.getElementById("submitQuiz");
-  if (submitBtn) {
-    submitBtn.disabled = true;
-    submitBtn.textContent = "Saving…";
-  }
+  const btn = document.getElementById("submitQuiz");
+  if (btn) { btn.disabled = true; btn.textContent = "Saving…"; }
 
-  const timeSpent = getTimeSpentSeconds();
-
-  const payload = {
-    age_range: quizState.answers.ageRange,
-    current_weight: quizState.answers.currentWeight,
-    target_weight: quizState.answers.targetWeight,
-    activity_level: quizState.answers.activityLevel,
-    main_goal: quizState.answers.mainGoal,
-    email: quizState.answers.email,
-    time_spent_sec: timeSpent,
-  };
-
-  // Mark visit as completed
-  patchVisit({ ...payload, completed: true, quiz_step_reached: TOTAL_STEPS });
-
-  try {
-    await dbInsert(QUIZ_TABLE, payload);
-  } catch (err) {
-    console.error("[Submit]", err);
-  }
+  save({
+    completed:         true,
+    quiz_step_reached: TOTAL_STEPS,
+    time_spent_sec:    getSeconds(),
+    age_range:         state.answers.ageRange,
+    current_weight:    state.answers.currentWeight,
+    target_weight:     state.answers.targetWeight,
+    activity_level:    state.answers.activityLevel,
+    main_goal:         state.answers.mainGoal,
+    email:             state.answers.email,
+  });
 
   clearSession();
   showStep(7);
 }
 
 function initSubmitButton() {
-  const btn = document.getElementById("submitQuiz");
-  if (btn) btn.addEventListener("click", handleSubmit);
+  document.getElementById("submitQuiz")?.addEventListener("click", handleSubmit);
 }
 
 // =============================================
-//  RESTORE STATE FROM localStorage
+//  RESTORE STATE
 // =============================================
-function restoreQuizState() {
+function restoreState() {
   try {
-    const savedStep = parseInt(localStorage.getItem("gp_quiz_step"), 10);
-    const savedAnswers = JSON.parse(
-      localStorage.getItem("gp_quiz_answers") || "null",
-    );
-    if (savedAnswers) Object.assign(quizState.answers, savedAnswers);
+    const savedStep    = parseInt(localStorage.getItem(KEY_STEP), 10);
+    const savedAnswers = JSON.parse(localStorage.getItem(KEY_ANSWERS) || "null");
+    if (savedAnswers) Object.assign(state.answers, savedAnswers);
 
-    if (savedStep && savedStep >= 1 && savedStep <= TOTAL_STEPS) {
-      if (quizState.answers.currentWeight) {
-        const el = document.getElementById("currentWeight");
-        if (el) el.value = quizState.answers.currentWeight;
-      }
-      if (quizState.answers.targetWeight) {
-        const el = document.getElementById("targetWeight");
-        if (el) el.value = quizState.answers.targetWeight;
-      }
-      if (quizState.answers.email) {
-        const el = document.getElementById("userEmail");
-        if (el) el.value = quizState.answers.email;
-      }
-
-      const optionMap = {
-        1: quizState.answers.ageRange,
-        4: quizState.answers.activityLevel,
-        5: quizState.answers.mainGoal,
-      };
-      Object.entries(optionMap).forEach(([step, value]) => {
-        if (!value) return;
-        const btn = document.querySelector(
-          `.quiz-step[data-step="${step}"] .quiz-option-btn[data-value="${value}"]`,
-        );
-        if (btn) btn.classList.add("selected");
+    if (savedStep >= 1 && savedStep <= TOTAL_STEPS) {
+      const fields = { currentWeight: "currentWeight", targetWeight: "targetWeight", email: "userEmail" };
+      Object.entries(fields).forEach(([key, id]) => {
+        if (state.answers[key]) {
+          const el = document.getElementById(id);
+          if (el) el.value = state.answers[key];
+        }
       });
-
+      const optionMap = { 1: state.answers.ageRange, 4: state.answers.activityLevel, 5: state.answers.mainGoal };
+      Object.entries(optionMap).forEach(([step, val]) => {
+        if (!val) return;
+        document.querySelector(`.quiz-step[data-step="${step}"] .quiz-option-btn[data-value="${val}"]`)
+          ?.classList.add("selected");
+      });
       showStep(savedStep);
       return;
     }
@@ -422,10 +323,10 @@ function restoreQuizState() {
 //  INIT
 // =============================================
 document.addEventListener("DOMContentLoaded", async () => {
-  await initSession(); // create page_visits row first
+  await initSession();
   initTimeTracking();
   initOptionButtons();
   initNavButtons();
   initSubmitButton();
-  restoreQuizState();
+  restoreState();
 });
