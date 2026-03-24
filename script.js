@@ -14,8 +14,8 @@
 //      time_spent_sec int
 //    );
 // =============================================
-const SUPABASE_URL  = 'YOUR_SUPABASE_URL';   // e.g. https://xxxx.supabase.co
-const SUPABASE_KEY  = 'YOUR_SUPABASE_ANON_KEY';
+const SUPABASE_URL = "https://qpykntwppcdkttkbedgs.supabase.co";   // e.g. https://xxxx.supabase.co
+const SUPABASE_KEY = "sb_publishable_LRkPXFhsBbgfiKcGtRCtWA_KW2sT41O";
 const TABLE_NAME    = 'quiz_submissions';
 
 /**
