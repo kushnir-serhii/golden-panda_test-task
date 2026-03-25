@@ -327,13 +327,6 @@ ul {
   margin: 0 auto;
 }
 
-@media screen and (min-width: 768px) {
-  /* .reason-section {
-    flex-direction: row;
-  } */
-
-}
-
 .reason-section--alt-bg {
   background: var(--color-section-bg);
   max-width: 100%;
