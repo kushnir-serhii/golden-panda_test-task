@@ -16,15 +16,12 @@ export function initTimeTracking() {
   // Heartbeat every 30 s
   setInterval(() => save({ time_spent_sec: getSeconds() }), 30_000);
 
-  // Save on tab hide / close — keepalive so the request survives unload
+  // Save on tab hide / close — keepalive so the request survives unload.
+  // Using visibilitychange instead of beforeunload to keep bfcache eligible.
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "hidden") {
       const id = getRowId();
       if (id) dbPatchKeepAlive(id, { time_spent_sec: getSeconds() });
     }
-  });
-  window.addEventListener("beforeunload", () => {
-    const id = getRowId();
-    if (id) dbPatchKeepAlive(id, { time_spent_sec: getSeconds() });
   });
 }
