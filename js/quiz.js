@@ -158,17 +158,22 @@ export async function handleSubmit() {
   const btn = document.getElementById("submitQuiz");
   if (btn) { btn.disabled = true; btn.textContent = "Saving…"; }
 
-  save({
-    completed:         true,
-    quiz_step_reached: TOTAL_STEPS,
-    time_spent_sec:    getSeconds(),
-    age_range:         state.answers.ageRange,
-    current_weight:    state.answers.currentWeight,
-    target_weight:     state.answers.targetWeight,
-    activity_level:    state.answers.activityLevel,
-    main_goal:         state.answers.mainGoal,
-    email:             state.answers.email,
-  });
+  try {
+    await save({
+      completed:         true,
+      quiz_step_reached: TOTAL_STEPS,
+      time_spent_sec:    getSeconds(),
+      age_range:         state.answers.ageRange,
+      current_weight:    state.answers.currentWeight,
+      target_weight:     state.answers.targetWeight,
+      activity_level:    state.answers.activityLevel,
+      main_goal:         state.answers.mainGoal,
+      email:             state.answers.email,
+    });
+  } catch (e) {
+    // Step-by-step patches already saved the answers — proceed regardless
+    console.warn("[Submit]", e);
+  }
 
   clearSession(); // also nulls rowId — stops heartbeat/unload from overwriting submitted data
   showStep(7);

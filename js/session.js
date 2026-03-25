@@ -34,8 +34,8 @@ export async function initSession() {
 }
 
 export function save(data) {
-  if (!rowId) return;
-  dbPatch(rowId, data);
+  if (!rowId) return Promise.resolve();
+  return dbPatch(rowId, data);
 }
 
 export function clearSession() {

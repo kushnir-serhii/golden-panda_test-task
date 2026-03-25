@@ -10,7 +10,7 @@ export async function dbInsert(data) {
 }
 
 export function dbPatch(id, data) {
-  db.from(TABLE)
+  return db.from(TABLE)
     .update(data)
     .eq("id", id)
     .then(({ error }) => {
